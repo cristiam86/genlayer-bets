@@ -1,19 +1,44 @@
 import { createClient, createAccount as createGenLayerAccount, generatePrivateKey } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
 
-const accountPrivateKey = localStorage.getItem("accountPrivateKey")
-  ? localStorage.getItem("accountPrivateKey")
-  : null;
-export const account = accountPrivateKey ? createGenLayerAccount(accountPrivateKey) : null;
+// Helper function to safely access localStorage only on client side
+const getLocalStorageItem = (key) => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem(key);
+  }
+  return null;
+};
+
+const setLocalStorageItem = (key, value) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(key, value);
+  }
+};
+
+const removeLocalStorageItem = (key) => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(key);
+  }
+};
+
+// Initialize account only on client side
+let accountInstance = null;
+
+if (typeof window !== 'undefined') {
+  const accountPrivateKey = getLocalStorageItem("accountPrivateKey");
+  accountInstance = accountPrivateKey ? createGenLayerAccount(accountPrivateKey) : null;
+}
+
+export const account = accountInstance;
 
 export const createAccount = () => {
   const newAccountPrivateKey = generatePrivateKey();
-  localStorage.setItem("accountPrivateKey", newAccountPrivateKey);
+  setLocalStorageItem("accountPrivateKey", newAccountPrivateKey);
   return createGenLayerAccount(newAccountPrivateKey);
 };
 
 export const removeAccount = () => {
-  localStorage.removeItem("accountPrivateKey");
+  removeLocalStorageItem("accountPrivateKey");
 };
 
 export const client = createClient({ chain: studionet, account });
