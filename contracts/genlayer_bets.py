@@ -16,16 +16,15 @@ class Bet:
     title: str
     description: str
     category: str
-    outcome: u256
+    outcome: str
     reason: str
-    possible_outcomes: DynArray[str]
 
 
 class GenLayerBets(gl.Contract):
     bets: DynArray[Bet]
     x_handlers: TreeMap[Address, str]
     discord_handlers: TreeMap[Address, str]
-    user_bets: TreeMap[Address, DynArray[u256]]
+    user_bets: TreeMap[Address, DynArray[str]]
     overall_points: TreeMap[Address, u256]
     owner: Address
 
@@ -45,7 +44,6 @@ class GenLayerBets(gl.Contract):
         title: str,
         description: str,
         category: str,
-        possible_outcomes: DynArray[str],
     ) -> None:
         """
         Creates a new betting event. Only the contract owner can call this method.
@@ -56,7 +54,6 @@ class GenLayerBets(gl.Contract):
             resolution_url: URL to check for bet resolution
             title: Title of the betting event
             description: Description of what is being bet on
-            possible_outcomes: List of possible outcomes for the bet
         """
         self._require_owner()
 
@@ -64,10 +61,6 @@ class GenLayerBets(gl.Contract):
         existing_bet = next((bet for bet in self.bets if bet.id == bet_id), None)
         if existing_bet is not None:
             raise Exception(f"Bet with id {bet_id} already exists")
-
-        # Validate that there are at least 2 possible outcomes
-        if len(possible_outcomes) < 2:
-            raise Exception("Bet must have at least 2 possible outcomes")
 
         # Create the new bet
         new_bet = Bet(
@@ -78,9 +71,8 @@ class GenLayerBets(gl.Contract):
             title=title,
             description=description,
             category=category,
-            outcome=0,  # Default value, will be set when resolved
+            outcome="",  # Default value, will be set when resolved
             reason="",  # Default value, will be set when resolved
-            possible_outcomes=possible_outcomes,
         )
 
         # Add the bet to the contract
@@ -90,7 +82,6 @@ class GenLayerBets(gl.Contract):
         bet_resolution_url = bet.resolution_url
         bet_title = bet.title
         bet_description = bet.description
-        bet_possible_outcomes = bet.possible_outcomes
 
         def get_bet_result() -> str:
             web_data = gl.get_webpage(bet_resolution_url, mode="text")
@@ -98,14 +89,14 @@ class GenLayerBets(gl.Contract):
             task = f"""
 In the following web content, you need to resolve a bet about {bet_title}: {bet_description}
 
-The possible outcomes are: {bet_possible_outcomes}
+The possible outcomes are: ["yes", "no"]
 
 Web content:
 {web_data}
 
 Respond in JSON:
 {{
-    "outcome": str, // This should be one of the possible outcomes. e.g., "Yes" or "No" 
+    "outcome": str, // This should be one of the possible outcomes. e.g., "yes" or "no" 
     "reason": str, // This should be a short explanation of why you chose the outcome. e.g., "The new AI model is expected to be released by June 20"
 }}
 It is mandatory that you respond only using the JSON format above,
@@ -145,7 +136,9 @@ This result should be perfectly parsable by a JSON parser without errors.
         bet_status = self._check_bet(bet)
 
         bet.has_resolved = True
-        bet.outcome = bet.possible_outcomes.index(bet_status["outcome"])
+        bet.outcome = bet_status[
+            "outcome"
+        ].lower()  # Store as lowercase for consistency
         bet.reason = bet_status["reason"]
 
         # Find the bet index in the bets array
@@ -163,7 +156,7 @@ This result should be perfectly parsable by a JSON parser without errors.
                 user_bet_outcome = user_bets_array[bet_index]
 
                 # Check if the user's prediction matches the actual outcome
-                if user_bet_outcome == bet.outcome:
+                if user_bet_outcome.lower() == bet.outcome:
                     # Increment overall points for this user
                     if user_address not in self.overall_points:
                         self.overall_points[user_address] = 0
@@ -187,7 +180,10 @@ This result should be perfectly parsable by a JSON parser without errors.
                     ]
 
                     # Calculate points for this user on this bet
-                    if bet.has_resolved and user_bets_array[bet_index] == bet.outcome:
+                    if (
+                        bet.has_resolved
+                        and user_bets_array[bet_index].lower() == bet.outcome
+                    ):
                         users_points_for_this_bet[user_address.as_hex] = 1
                     else:
                         users_points_for_this_bet[user_address.as_hex] = 0
@@ -202,7 +198,6 @@ This result should be perfectly parsable by a JSON parser without errors.
                 "category": bet.category,
                 "outcome": bet.outcome,
                 "reason": bet.reason,
-                "possible_outcomes": bet.possible_outcomes,
                 "users_bets": users_bets_for_this_bet,
                 "users_points": users_points_for_this_bet,
             }
@@ -252,12 +247,7 @@ This result should be perfectly parsable by a JSON parser without errors.
                         {
                             "bet_id": self.bets[i].id,
                             "bet_title": self.bets[i].title,
-                            "selected_outcome_index": bet_outcome,
-                            "selected_outcome": (
-                                self.bets[i].possible_outcomes[bet_outcome]
-                                if bet_outcome < len(self.bets[i].possible_outcomes)
-                                else "Invalid"
-                            ),
+                            "selected_outcome": bet_outcome,
                         }
                     )
 
@@ -282,9 +272,9 @@ This result should be perfectly parsable by a JSON parser without errors.
         self,
         user_discord_handler: str,
         user_x_handler: str,
-        bet_0_outcome: int,
-        bet_1_outcome: int,
-        bet_2_outcome: int,
+        bet_0_outcome: str,
+        bet_1_outcome: str,
+        bet_2_outcome: str,
     ) -> None:
         """
         Allows users to place a bet on an existing betting event.
@@ -292,9 +282,9 @@ This result should be perfectly parsable by a JSON parser without errors.
         Args:
             user_discord_handler: Discord handler for the user
             user_x_handler: X (Twitter) handler for the user
-            bet_0_outcome: The index of the outcome the user is betting on for bet 0 (0, 1, 2, etc.)
-            bet_1_outcome: The index of the outcome the user is betting on for bet 1 (0, 1, 2, etc.)
-            bet_2_outcome: The index of the outcome the user is betting on for bet 2 (0, 1, 2, etc.)
+            bet_0_outcome: The outcome the user is betting on for bet 0 ("yes" or "no")
+            bet_1_outcome: The outcome the user is betting on for bet 1 ("yes" or "no")
+            bet_2_outcome: The outcome the user is betting on for bet 2 ("yes" or "no")
         """
 
         # Get the sender's address
@@ -310,18 +300,25 @@ This result should be perfectly parsable by a JSON parser without errors.
         if len(self.bets) != 3:
             raise Exception("There must be exactly 3 bets available")
 
-        # Validate that the outcome indices are valid
-        if bet_0_outcome >= len(self.bets[0].possible_outcomes):
-            raise Exception(f"Invalid outcome index for bet 0: {bet_0_outcome}")
-        if bet_1_outcome >= len(self.bets[1].possible_outcomes):
-            raise Exception(f"Invalid outcome index for bet 1: {bet_1_outcome}")
-        if bet_2_outcome >= len(self.bets[2].possible_outcomes):
-            raise Exception(f"Invalid outcome index for bet 2: {bet_2_outcome}")
+        # Validate that the outcomes are valid ("yes" or "no")
+        valid_outcomes = ["yes", "no"]
+        if bet_0_outcome.lower() not in valid_outcomes:
+            raise Exception(
+                f"Invalid outcome for bet 0: {bet_0_outcome}. Must be 'yes' or 'no'"
+            )
+        if bet_1_outcome.lower() not in valid_outcomes:
+            raise Exception(
+                f"Invalid outcome for bet 1: {bet_1_outcome}. Must be 'yes' or 'no'"
+            )
+        if bet_2_outcome.lower() not in valid_outcomes:
+            raise Exception(
+                f"Invalid outcome for bet 2: {bet_2_outcome}. Must be 'yes' or 'no'"
+            )
 
         self.x_handlers[user_address] = user_x_handler
         self.discord_handlers[user_address] = user_discord_handler
         self.user_bets[user_address] = [
-            u256(bet_0_outcome),
-            u256(bet_1_outcome),
-            u256(bet_2_outcome),
+            bet_0_outcome.lower(),
+            bet_1_outcome.lower(),
+            bet_2_outcome.lower(),
         ]
