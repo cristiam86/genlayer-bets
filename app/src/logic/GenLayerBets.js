@@ -1,7 +1,7 @@
 import { createClient } from "genlayer-js";
 import { simulator } from "genlayer-js/chains";
 
-class FootballBets {
+class GenLayerBets {
   contractAddress;
   client;
 
@@ -25,20 +25,8 @@ class FootballBets {
       functionName: "get_bets",
       args: [],
     });
-    return Array.from(bets.entries()).flatMap(([owner, bet]) => {
-      return Array.from(bet.entries()).map(([id, betData]) => {
-        const betObj = Array.from(betData.entries()).reduce((obj, [key, value]) => {
-          obj[key] = value;
-          return obj;
-        }, {});
-
-        return {
-          id,
-          ...betObj,
-          owner,
-        };
-      });
-    });
+    // The new contract returns an array of bet objects directly
+    return bets;
   }
 
   async getPlayerPoints(address) {
@@ -67,11 +55,11 @@ class FootballBets {
       .sort((a, b) => b.points - a.points);
   }
 
-  async createBet(gameDate, team1, team2, predictedWinner) {
+  async placeBet(betId, outcomeIndex) {
     const txHash = await this.client.writeContract({
       address: this.contractAddress,
-      functionName: "create_bet",
-      args: [gameDate, team1, team2, predictedWinner],
+      functionName: "place_bet",
+      args: [betId, outcomeIndex],
     });
     const receipt = await this.client.waitForTransactionReceipt({
       hash: txHash,
@@ -95,6 +83,15 @@ class FootballBets {
     });
     return receipt;
   }
+
+  async getOwner() {
+    const owner = await this.client.readContract({
+      address: this.contractAddress,
+      functionName: "get_owner",
+      args: [],
+    });
+    return owner;
+  }
 }
 
-export default FootballBets;
+export default GenLayerBets;
