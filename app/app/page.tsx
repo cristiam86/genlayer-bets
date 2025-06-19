@@ -168,21 +168,30 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-white py-16 md:py-24">
+      <section className="relative overflow-hidden min-h-[600px] flex items-center">
         <div className="absolute inset-0 -z-10">
-          <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-gradient-to-br from-purple-200 to-pink-200 opacity-30 blur-3xl"></div>
-          <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-gradient-to-br from-blue-200 to-cyan-200 opacity-30 blur-3xl"></div>
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ 
+              backgroundImage: 'url("/bg.jpg")',
+              height: '100%',
+              width: '100%',
+            }}
+          />
+          <div className="absolute inset-0 bg-black/30" /> {/* Darker overlay for better contrast */}
+          <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-gradient-to-br from-purple-200/30 to-pink-200/30 opacity-30 blur-3xl"></div>
+          <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-gradient-to-br from-blue-200/30 to-cyan-200/30 opacity-30 blur-3xl"></div>
         </div>
-        <div className="container px-4 md:px-6">
+        <div className="container relative z-10 px-4 md:px-6 py-16 md:py-24">
           <div className="mx-auto max-w-4xl text-center">
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl mb-2">
+            <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl mb-2 text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] [text-shadow:_2px_2px_10px_rgb(0_0_0_/_20%)]">
               Testnet Asimov's Prediction Market
             </h1>
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl mb-6 text-purple-600">
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl mb-6 text-purple-100 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] [text-shadow:_2px_2px_8px_rgb(0_0_0_/_20%)]">
               Powered by Intelligent Contracts
             </h2>
-            <p className="max-w-3xl mx-auto text-lg md:text-xl text-muted-foreground mb-4">
-            This is GenLayer's testnet prediction market quest. Fulfill the 3 steps below and share your image on X to be eligible for the $25 raffle and get the "Early Testnet User" role.
+            <p className="max-w-3xl mx-auto text-lg md:text-xl text-white mb-4 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] [text-shadow:_1px_1px_4px_rgb(0_0_0_/_20%)] font-medium">
+              This is GenLayer's testnet prediction market quest. Fulfill the 3 steps below and share your image on X to be eligible for the $25 raffle and get the "Early Testnet User" role.
             </p>
           </div>
         </div>
