@@ -109,7 +109,7 @@ This result should be perfectly parsable by a JSON parser without errors.
             return json.dumps(json.loads(result), sort_keys=True)
 
         result_json = json.loads(
-            gl.eq_principle.prompt_comparative(
+            gl.eq_principle_prompt_comparative(
                 get_bet_result, "the outcome should be the same"
             )
         )

@@ -27,7 +27,7 @@ export default async function main(client: GenLayerClient<any>) {
     });
 
     if (
-      receipt.consensus_data?.leader_receipt?.execution_result !== "SUCCESS"
+      receipt.consensus_data?.leader_receipt[0].execution_result !== "SUCCESS"
     ) {
       throw new Error(`Deployment failed. Receipt: ${JSON.stringify(receipt)}`);
     }
@@ -49,7 +49,7 @@ export default async function main(client: GenLayerClient<any>) {
         "https://www.bbc.com/sport/football/club-world-cup/table",
         "FIFA World Cup: PSG wins all group stage matches",
         "Will PSG win all group stage matches in the FIFA World Cup?",
-        ["yes", "no"],
+        "Sports",
       ],
       value: 0n,
     });
@@ -72,7 +72,7 @@ export default async function main(client: GenLayerClient<any>) {
         "https://artificialanalysis.ai/leaderboards/models",
         "New AI Model Surpassing OpenAI's o3",
         "Will any provider release an AI model with more than 70 Artificial Intelligence before June 20, surpassing OpenAI's o3 model?",
-        ["yes", "no"],
+        "AI",
       ],
       value: 0n,
     });
@@ -95,7 +95,7 @@ export default async function main(client: GenLayerClient<any>) {
         "https://x.com/Cryptony09",
         "Genlayer AMA Membership Milestone",
         "Will one Genlayer AMA surpass more than 375 members according to @Cryptony09's post from X?",
-        ["yes", "no"],
+        "Community",
       ],
       value: 0n,
     });
