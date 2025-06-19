@@ -44,12 +44,12 @@ export default async function main(client: GenLayerClient<any>) {
       address: contractAddress,
       functionName: "create_bet",
       args: [
-        "fifa_worldcup_psg_vs_atletico_madrid",
-        "2025-06-15",
-        "https://www.fifa.com/en/match-centre/match/10005/289175/289176/400019155?date=2025-06-15",
-        "FIFA World Cup: PSG vs. Atletico Madrid",
-        "Who will win the match between PSG and Atletico Madrid?",
-        ["PSG", "Atletico Madrid", "Draw"],
+        "fifa_worldcup_psg_group_stage",
+        "2025-06-24",
+        "https://www.bbc.com/sport/football/club-world-cup/table",
+        "FIFA World Cup: PSG wins all group stage matches",
+        "Will PSG win all group stage matches in the FIFA World Cup?",
+        ["yes", "no"],
       ],
       value: 0n,
     });
@@ -68,11 +68,11 @@ export default async function main(client: GenLayerClient<any>) {
       functionName: "create_bet",
       args: [
         "new_ai_model_surpass_o3",
-        "2025-06-20",
+        "2025-06-30",
         "https://artificialanalysis.ai/leaderboards/models",
         "New AI Model Surpassing OpenAI's o3",
         "Will any provider release an AI model with more than 70 Artificial Intelligence before June 20, surpassing OpenAI's o3 model?",
-        ["Yes", "No"],
+        ["yes", "no"],
       ],
       value: 0n,
     });
@@ -90,12 +90,12 @@ export default async function main(client: GenLayerClient<any>) {
       address: contractAddress,
       functionName: "create_bet",
       args: [
-        "genlayer_ama_340_members",
+        "genlayer_ama_375_members",
         "2025-06-30",
         "https://x.com/Cryptony09",
         "Genlayer AMA Membership Milestone",
-        "Will one Genlayer AMA surpass more than 340 members according to @Cryptony09's post from X?",
-        ["Yes", "No"],
+        "Will one Genlayer AMA surpass more than 375 members according to @Cryptony09's post from X?",
+        ["yes", "no"],
       ],
       value: 0n,
     });
