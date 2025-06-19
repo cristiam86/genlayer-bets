@@ -217,53 +217,58 @@ This result should be perfectly parsable by a JSON parser without errors.
     def get_player_points(self, player_address: str) -> int:
         return self.overall_points.get(Address(player_address), 0)
 
-    # @gl.public.view
-    # def get_user_bets(self, user_address: str) -> dict:
-    #     """
-    #     Returns all bets for a specific user.
+    @gl.public.view
+    def get_all_user_bets(self) -> dict:
+        """
+        Exports all user bets in a structured format.
 
-    #     Args:
-    #         user_address: The address of the user
+        Returns:
+            dict: A dictionary containing all user bet information including:
+                - user_addresses: List of user addresses
+                - user_handlers: Dictionary mapping addresses to social handles
+                - user_bet_selections: Dictionary mapping addresses to their bet selections
+                - total_users: Total number of users who have placed bets
+        """
+        user_addresses = []
+        user_handlers = {}
+        user_bet_selections = {}
 
-    #     Returns:
-    #         Dictionary containing user's bets and their details
-    #     """
-    #     address = Address(user_address)
-    #     if address not in self.user_bets:
-    #         return {"bets": [], "total_points": 0}
+        for user_address, user_bets_array in self.user_bets.items():
+            user_addresses.append(user_address.as_hex)
 
-    #     user_bets_array = self.user_bets[address]
-    #     user_bets_details = []
+            # Get social handles
+            x_handler = self.x_handlers.get(user_address, "")
+            discord_handler = self.discord_handlers.get(user_address, "")
+            user_handlers[user_address.as_hex] = {
+                "x_handler": x_handler,
+                "discord_handler": discord_handler,
+            }
 
-    #     for bet_index, bet_outcome in enumerate(user_bets_array):
-    #         if bet_index < len(self.bets) and bet_outcome is not None:
-    #             bet = self.bets[bet_index]
-    #             bet_detail = {
-    #                 "bet_id": bet.id,
-    #                 "bet_title": bet.title,
-    #                 "user_outcome": bet_outcome,
-    #                 "user_outcome_text": (
-    #                     bet.possible_outcomes[bet_outcome]
-    #                     if bet_outcome < len(bet.possible_outcomes)
-    #                     else "Invalid"
-    #                 ),
-    #                 "has_resolved": bet.has_resolved,
-    #                 "correct_outcome": bet.outcome if bet.has_resolved else None,
-    #                 "correct_outcome_text": (
-    #                     bet.possible_outcomes[bet.outcome]
-    #                     if bet.has_resolved and bet.outcome < len(bet.possible_outcomes)
-    #                     else None
-    #                 ),
-    #                 "points_earned": (
-    #                     1 if bet.has_resolved and bet_outcome == bet.outcome else 0
-    #                 ),
-    #             }
-    #             user_bets_details.append(bet_detail)
+            # Get bet selections
+            bet_selections = []
+            for i, bet_outcome in enumerate(user_bets_array):
+                if i < len(self.bets):
+                    bet_selections.append(
+                        {
+                            "bet_id": self.bets[i].id,
+                            "bet_title": self.bets[i].title,
+                            "selected_outcome_index": bet_outcome,
+                            "selected_outcome": (
+                                self.bets[i].possible_outcomes[bet_outcome]
+                                if bet_outcome < len(self.bets[i].possible_outcomes)
+                                else "Invalid"
+                            ),
+                        }
+                    )
 
-    #     return {
-    #         "bets": user_bets_details,
-    #         "total_points": self.overall_points.get(address, 0),
-    #     }
+            user_bet_selections[user_address.as_hex] = bet_selections
+
+        return {
+            "user_addresses": user_addresses,
+            "user_handlers": user_handlers,
+            "user_bet_selections": user_bet_selections,
+            "total_users": len(user_addresses),
+        }
 
     @gl.public.view
     def get_owner(self) -> str:
