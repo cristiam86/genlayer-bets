@@ -16,3 +16,6 @@ __pycache__/
 *.pyo
 *.pyd
 *.compiled.js
+.next
+app/.next
+
