@@ -103,7 +103,7 @@ class GenLayerBets {
     });
     const receipt = await this.client.waitForTransactionReceipt({
       hash: txHash,
-      status: "ACCEPTED",
+      status: "FINALIZED",
       interval: 10000,
     });
     return receipt;

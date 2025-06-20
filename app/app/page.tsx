@@ -126,7 +126,9 @@ export default function Home() {
         bet2Outcome
       )
 
-      console.log("Transaction receipt:", receipt)
+      if (receipt.consensus_data.leader_receipt[0].execution_result === "SUCCESS") {
+        setHasAlreadyParticipated(true)
+      }
     } catch (err: any) {
       console.error("Failed to submit bets:", err)
       setError(err.message || "Failed to submit your bets. Please try again.")
