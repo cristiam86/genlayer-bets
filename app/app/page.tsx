@@ -187,9 +187,6 @@ export default function Home() {
             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl mb-2 text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] [text-shadow:_2px_2px_10px_rgb(0_0_0_/_20%)]">
               Prediction Market Quest: Powered by Intelligent Contracts
             </h1>
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl mb-6 text-purple-100 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] [text-shadow:_2px_2px_8px_rgb(0_0_0_/_20%)]">
-            This is GenLayer's prediction market quest.
-            </h2>
             <p className="max-w-3xl mx-auto text-lg md:text-xl text-white mb-4 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] [text-shadow:_1px_1px_4px_rgb(0_0_0_/_20%)] font-medium">
             Fulfill the 3 steps below and share your image on X to be eligible for 20 x $25 raffle and get the "Early Testnet User" role.
 
