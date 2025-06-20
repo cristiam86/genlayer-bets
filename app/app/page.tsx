@@ -415,7 +415,7 @@ export default function Home() {
                         {isLoading ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Submitting...
+                            Processing your transaction...
                           </>
                         ) : !canSubmit ? (
                           "Complete all steps above"
@@ -423,6 +423,11 @@ export default function Home() {
                           "Submit Participation"
                         )}
                       </Button>
+                      {isLoading && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                           Your shareable image will appear in ~1 minute.
+                        </p>
+                      )}
                       {canSubmit && (
                         <p className="text-xs text-muted-foreground mt-2">
                           ✅ Get all 3 bets right and get raffled for a $25 reward on GenLayer's Discord.
