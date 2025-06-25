@@ -414,7 +414,7 @@ export default function Home() {
                   ) : (
                     <>
                       <p className="text-muted-foreground mb-6">
-                      Submit your votes and share the following image on X to be eligible for the 20 x $25 raffle and the "Early Testnet User" role.
+                      Submit your votes and share the following image on X to be eligible for the 20 x $25 raffle and the "Early Community Builder" role.
                       </p>
                       <Button
                         size="lg"
