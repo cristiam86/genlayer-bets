@@ -12,8 +12,6 @@ export default function Header() {
             <Image src="/genlayer-logo.png" alt="GenLayer" width={120} height={32} className="h-8 w-auto" />
           </Link>
         </div>
-
-        <div className="text-sm text-muted-foreground">Testnet Asimov Campaign</div>
       </div>
     </header>
   )

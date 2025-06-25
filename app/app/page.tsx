@@ -190,8 +190,7 @@ export default function Home() {
               Prediction Market Quest: Powered by Intelligent Contracts
             </h1>
             <p className="max-w-3xl mx-auto text-lg md:text-xl text-white mb-4 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] [text-shadow:_1px_1px_4px_rgb(0_0_0_/_20%)] font-medium">
-            Fulfill the 3 steps below and share your image on X to be eligible for 20 x $25 raffle and get the "Early Testnet User" role.
-
+              Complete 3 simple steps to enter the 20 x $25 raffle and earn the exclusive "Early Community Builder" role.
             </p>
           </div>
         </div>
@@ -244,7 +243,7 @@ export default function Home() {
                   {hasAlreadyParticipated ? "Your Social Handles" : "Enter Your Social Handles"}
                 </CardTitle>
                 {hasAlreadyParticipated && (
-                  <p className="text-sm text-green-600 font-medium">✅ You have already participated in this prediction market!</p>
+                  <p className="text-sm text-green-600 font-medium">✅ You've successfully joined the quest!</p>
                 )}
               </CardHeader>
               <CardContent>
@@ -329,7 +328,7 @@ export default function Home() {
                       const selectedOutcome = userBetSelection?.selected_outcome || formData.votes[index]
                       
                       return (
-                        <div key={bet.id} className="border rounded-lg p-4">
+                        <div key={bet.id} className="border rounded-lg p-4 h-full flex flex-col">
                           <div className="flex items-center justify-between mb-2">
                             <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
                               {bet.category}
@@ -337,7 +336,18 @@ export default function Home() {
                             <span className="text-xs text-muted-foreground">Resolves: {bet.resolution_date}</span>
                           </div>
                           <h3 className="font-semibold text-sm mb-2">{bet.title}</h3>
-                          <p className="text-xs text-muted-foreground mb-4">{bet.description}</p>
+                          <p className="text-xs text-muted-foreground mb-4 flex-1">{bet.description}</p>
+                          <p className="text-xs text-muted-foreground mb-0">
+                            <span className="font-bold">Resolution URL</span>{" "}
+                          </p>
+                          <p className="text-xs text-muted-foreground mb-4">
+                            <a href={bet.resolution_url} target="_blank" rel="noopener noreferrer" className="hover:underline break-all text-xs">
+                              {bet.resolution_url.length > 35
+                                ? `${bet.resolution_url.slice(0, 30)}...${bet.resolution_url.slice(-5)}`
+                                : bet.resolution_url} <ExternalLink className="inline h-3 w-3" />
+                            </a>
+                          </p>
+
                           
                           {hasAlreadyParticipated && selectedOutcome && (
                             <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded">
@@ -347,7 +357,7 @@ export default function Home() {
                             </div>
                           )}
                           
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-2 gap-2 mt-auto">
                             {["yes", "no"].map((outcome) => (
                               <Button
                                 key={outcome}
