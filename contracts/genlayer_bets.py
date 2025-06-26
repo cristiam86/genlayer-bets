@@ -1,6 +1,8 @@
 # { "Depends": "py-genlayer:test" }
 
 import json
+import typing
+import urllib.parse
 from dataclasses import dataclass
 from genlayer import *
 from datetime import datetime, timezone
@@ -13,6 +15,10 @@ class Bet:
     resolution_date: str
     has_resolved: bool
     resolution_url: str
+    resolution_x_method: str
+    resolution_x_parameter: (
+        str  # Parameter for X API methods (user handle, tweet ID, etc.)
+    )
     title: str
     description: str
     category: str
@@ -41,6 +47,8 @@ class GenLayerBets(gl.Contract):
         bet_id: str,
         resolution_date: str,
         resolution_url: str,
+        resolution_x_method: str,
+        resolution_x_parameter: str,
         title: str,
         description: str,
         category: str,
@@ -52,6 +60,8 @@ class GenLayerBets(gl.Contract):
             bet_id: Unique identifier for the bet
             date: Date when the bet can be resolved (YYYY-MM-DD format)
             resolution_url: URL to check for bet resolution
+            resolution_x_method: X API method to use for resolution (if no URL)
+            resolution_x_parameter: Parameter for X API method (user handle, tweet ID, etc.)
             title: Title of the betting event
             description: Description of what is being bet on
         """
@@ -68,6 +78,8 @@ class GenLayerBets(gl.Contract):
             resolution_date=resolution_date,
             has_resolved=False,
             resolution_url=resolution_url,
+            resolution_x_method=resolution_x_method,
+            resolution_x_parameter=resolution_x_parameter,
             title=title,
             description=description,
             category=category,
@@ -80,11 +92,37 @@ class GenLayerBets(gl.Contract):
 
     def _check_bet(self, bet: Bet) -> str:
         bet_resolution_url = bet.resolution_url
+        bet_resolution_x_method = bet.resolution_x_method
+        bet_resolution_x_parameter = bet.resolution_x_parameter
         bet_title = bet.title
         bet_description = bet.description
 
         def get_bet_result() -> str:
-            web_data = gl.get_webpage(bet_resolution_url, mode="text")
+            # Check if we should use X API method instead of URL
+            if not bet_resolution_url and bet_resolution_x_method:
+                # Use X API method
+                if bet_resolution_x_method == "get_user_latest_tweets":
+                    if not bet_resolution_x_parameter:
+                        raise Exception(
+                            "X API method 'get_user_latest_tweets' requires user handle parameter"
+                        )
+                    tweet_data = get_user_latest_tweets(bet_resolution_x_parameter)
+                    web_data = json.dumps(tweet_data, indent=2)
+                elif bet_resolution_x_method == "get_tweet_data":
+                    if not bet_resolution_x_parameter:
+                        raise Exception(
+                            "X API method 'get_tweet_data' requires tweet ID parameter"
+                        )
+                    tweet_data = get_tweet_data(bet_resolution_x_parameter)
+                    web_data = json.dumps(tweet_data, indent=2)
+                else:
+                    raise Exception(f"Unknown X API method: {bet_resolution_x_method}")
+            else:
+                # Use the original URL-based approach
+                if not bet_resolution_url:
+                    raise Exception("No resolution URL or valid X API method provided")
+
+                web_data = gl.get_webpage(bet_resolution_url, mode="text")
 
             task = f"""
 In the following web content, you need to resolve a bet about {bet_title}: {bet_description}
@@ -193,6 +231,8 @@ This result should be perfectly parsable by a JSON parser without errors.
                 "resolution_date": bet.resolution_date,
                 "has_resolved": bet.has_resolved,
                 "resolution_url": bet.resolution_url,
+                "resolution_x_method": bet.resolution_x_method,
+                "resolution_x_parameter": bet.resolution_x_parameter,
                 "title": bet.title,
                 "description": bet.description,
                 "category": bet.category,
@@ -322,3 +362,51 @@ This result should be perfectly parsable by a JSON parser without errors.
             bet_1_outcome.lower(),
             bet_2_outcome.lower(),
         ]
+
+
+def get_user_latest_tweets(user_handle: str) -> dict:
+    """
+    Get the latest tweets from a user using the Twitter API recent search endpoint
+    """
+    tweet_data = request_to_x(
+        "tweets/search/recent",
+        {
+            "query": f"from:{user_handle}",
+            "tweet.fields": "text,public_metrics",
+            "sort_order": "recency",
+        },
+    )
+    return tweet_data
+
+
+def get_tweet_data(tweet_id: str) -> dict:
+    """
+    Get the tweet data in 1 call using the /tweet/{tweet_id} API
+    NOTE: /tweet/{tweet_id} has low rate limit
+    """
+    tweet_data = request_to_x(
+        f"tweets/{tweet_id}",
+        {
+            "tweet.fields": "text,public_metrics",
+        },
+    )
+    return tweet_data
+
+
+def request_to_x(
+    endpoint: str, params: dict[typing.Any, typing.Any]
+) -> dict[str, typing.Any]:
+    proxy_url = "https://d-kol.vercel.app/api/twitter"
+    base_url = f"{proxy_url}/{endpoint}"
+
+    url = f"{base_url}?{urllib.parse.urlencode(params)}"
+
+    def call_x_api() -> dict[str, typing.Any]:
+        print(f"Requesting {url}")
+        web_data = gl.get_webpage(url, mode="text")
+        print(f"Response: '{web_data}'")
+        # TODO: improve this to handle case when response is not a json
+        # TODO: improve proxy server to return json in failure cases
+        return json.loads(web_data)
+
+    return gl.eq_principle_strict_eq(call_x_api)
