@@ -187,10 +187,10 @@ export default function Home() {
         <div className="container relative z-10 px-4 md:px-6 py-16 md:py-24">
           <div className="mx-auto max-w-4xl text-center">
             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl mb-2 text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] [text-shadow:_2px_2px_10px_rgb(0_0_0_/_20%)]">
-              Prediction Market Quest: Powered by Intelligent Contracts
+              Testnet Community Quest: Powered by Intelligent Contracts
             </h1>
             <p className="max-w-3xl mx-auto text-lg md:text-xl text-white mb-4 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] [text-shadow:_1px_1px_4px_rgb(0_0_0_/_20%)] font-medium">
-              Complete 3 simple steps to enter the 20 x $25 raffle and earn the exclusive "Early Community Builder" role.
+              Complete 3 simple steps to enter the 20 x $25 raffle and earn the exclusive "Early Testnet Community" role.
             </p>
           </div>
         </div>
@@ -414,7 +414,7 @@ export default function Home() {
                   ) : (
                     <>
                       <p className="text-muted-foreground mb-6">
-                      Submit your votes and share the following image on X to be eligible for the 20 x $25 raffle and the "Early Community Builder" role.
+                      Submit your votes and share the following image on X to be eligible for the 20 x $25 raffle and the "Early Testnet Community" role.
                       </p>
                       <Button
                         size="lg"
@@ -428,7 +428,7 @@ export default function Home() {
                             Processing your transaction...
                           </>
                         ) : !canSubmit ? (
-                          "Complete all steps above"
+                          "Complete All Steps Above"
                         ) : (
                           "Submit Participation"
                         )}
