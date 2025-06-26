@@ -39,17 +39,19 @@ export default async function main(client: GenLayerClient<any>) {
     console.log("\nCreating initial bets...");
 
     // Bet 1: FIFA World Cup - PSG vs. Atletico Madrid
-    console.log("Creating Bet 1: FIFA World Cup - PSG vs. Atletico Madrid");
+    console.log("Creating Bet 1: Testnet Announcement Video Likes");
     const bet1Hash = await client.writeContract({
       address: contractAddress,
       functionName: "create_bet",
       args: [
-        "fifa_worldcup_psg_win_quarter_final",
-        "2025-07-06",
-        "https://www.fifa.com/es/tournaments/mens/club-world-cup/usa-2025/scores-and-fixtures?country=ES&wtw-filter=ALL",
-        "FIFA World Cup: PSG to win quarter final",
-        "Will PSG win the quarter final in the FIFA World Cup?",
-        "Sports",
+        "testnet_announcement_video_likes",
+        "2025-07-10",
+        "",
+        "get_tweet_data",
+        "1935668887577632966",
+        "More than 700 likes on the testnet announcement video",
+        "Will the testnet announcement video reach more than 700 likes until July 10th?",
+        "Community",
       ],
       value: 0n,
     });
@@ -68,10 +70,12 @@ export default async function main(client: GenLayerClient<any>) {
       functionName: "create_bet",
       args: [
         "new_ai_model_surpass_o3",
-        "2025-07-02",
+        "2025-07-10",
         "https://artificialanalysis.ai/leaderboards/models",
+        "",
+        "",
         "New AI Model Surpassing OpenAI's o3",
-        "Will any provider release an AI model with a score higher than 71 on the Artificial Intelligence Index according to artificialanalysis.ai/#artificial-analysis-intelligence-index before July 2nd surpassing OpenAI's o3 pro model?",
+        "Will any provider release an AI model with a score higher than 71 on the Artificial Intelligence Index according to artificialanalysis.ai/#artificial-analysis-intelligence-index before July 10th surpassing OpenAI's o3 pro model?",
         "AI",
       ],
       value: 0n,
@@ -91,8 +95,10 @@ export default async function main(client: GenLayerClient<any>) {
       functionName: "create_bet",
       args: [
         "genlayer_ama_375_members",
-        "2025-06-30",
-        "https://x.com/Cryptony09",
+        "2025-07-10",
+        "",
+        "get_user_latest_tweets",
+        "Cryptony09",
         "Genlayer AMA Membership Milestone",
         "Will one Genlayer AMA surpass more than 375 members according to @Cryptony09's post from X?",
         "Community",
