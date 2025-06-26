@@ -338,14 +338,26 @@ export default function Home() {
                           <h3 className="font-semibold text-sm mb-2">{bet.title}</h3>
                           <p className="text-xs text-muted-foreground mb-4 flex-1">{bet.description}</p>
                           <p className="text-xs text-muted-foreground mb-0">
-                            <span className="font-bold">Resolution URL</span>{" "}
+                            <span className="font-bold">Resolution</span>{" "}
                           </p>
                           <p className="text-xs text-muted-foreground mb-4">
-                            <a href={bet.resolution_url} target="_blank" rel="noopener noreferrer" className="hover:underline break-all text-xs">
-                              {bet.resolution_url.length > 35
-                                ? `${bet.resolution_url.slice(0, 30)}...${bet.resolution_url.slice(-5)}`
-                                : bet.resolution_url} <ExternalLink className="inline h-3 w-3" />
-                            </a>
+                            {bet.resolution_url ? (
+                              <a href={bet.resolution_url} target="_blank" rel="noopener noreferrer" className="hover:underline break-all text-xs">
+                                {bet.resolution_url.length > 35
+                                  ? `${bet.resolution_url.slice(0, 30)}...${bet.resolution_url.slice(-5)}`
+                                  : bet.resolution_url} <ExternalLink className="inline h-3 w-3" />
+                              </a>
+                            ) : bet.resolution_x_method === "get_user_latest_tweets" ? (
+                              <span className="text-xs">
+                                Latest tweets from "{bet.resolution_x_parameter}"
+                              </span>
+                            ) : bet.resolution_x_method === "get_tweet_data" ? (
+                              <a href={`https://x.com/GenLayer/status/${bet.resolution_x_parameter}`} target="_blank" rel="noopener noreferrer" className="hover:underline break-all text-xs">
+                                https://x.com/GenLayer/status/{bet.resolution_x_parameter} <ExternalLink className="inline h-3 w-3" />
+                              </a>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">No resolution method specified</span>
+                            )}
                           </p>
 
                           
