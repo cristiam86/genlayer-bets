@@ -392,8 +392,8 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
-                    {bets.map((bet, index) => {
-                      const userBetSelection = userBets?.user_bet_selections?.find((selection: any) => selection.bet_id === bet.id)
+                    {bets.map((bet) => {
+                      const userBetSelection = userBets?.user_bet_selections?.find((selection: any) => selection.bet_id === bet.betId)
                       const selectedOutcome = userBetSelection?.selected_outcome || formData.votes[bet.id]
                       
                       return (
