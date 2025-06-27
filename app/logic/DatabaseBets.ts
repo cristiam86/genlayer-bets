@@ -66,7 +66,8 @@ class DatabaseBets {
       });
 
       if (!response.ok) throw new Error("Failed to place bets");
-      return await response.json();
+      const result = await response.json();
+      return result;
     } catch (error) {
       console.error("Error placing bets:", error);
       throw error;

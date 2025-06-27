@@ -12,6 +12,10 @@ import { account, createAccount } from "@/services/genlayer"
 // Initialize database bets service
 const databaseBets = new DatabaseBets()
 
+// Local storage keys
+const USER_ID_KEY = "genlayer_testnet_quest_user_id"
+const USER_ADDRESS_KEY = "genlayer_testnet_quest_user_address"
+
 export default function Home() {
   const [formData, setFormData] = useState({
     xHandle: "",
@@ -25,6 +29,7 @@ export default function Home() {
   const [isInitializing, setIsInitializing] = useState(true)
   const [userBets, setUserBets] = useState<any>(null)
   const [hasAlreadyParticipated, setHasAlreadyParticipated] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
 
   // Initialize wallet and contract transparently
   useEffect(() => {
@@ -32,6 +37,7 @@ export default function Home() {
       try {
         // Check if account exists, create one if it doesn't
         let currentAccount = account
+        console.log("🚀 ~ initializeWalletAndContract ~ currentAccount:", currentAccount)
         
         if (!currentAccount) {
           currentAccount = createAccount()
@@ -39,47 +45,99 @@ export default function Home() {
         
         setUserAccount(currentAccount)
         
+        // Check localStorage for existing user data
+        const storedUserId = localStorage.getItem(USER_ID_KEY)
+        const storedUserAddress = localStorage.getItem(USER_ADDRESS_KEY)
+        console.log("🚀 ~ initializeWalletAndContract ~ storedUserId:", storedUserId)
+        console.log("🚀 ~ initializeWalletAndContract ~ storedUserAddress:", storedUserAddress)
+        
+        let userBetsData: any = null;
+        
+        // If we have a stored user ID and the address matches, check if user has participated
+        if (storedUserId && storedUserAddress?.toLowerCase() === currentAccount?.address?.toLowerCase()) {
+          setUserId(storedUserId)
+          
+          // Fetch user bets to confirm participation
+          userBetsData = await databaseBets.getAllUserBets(currentAccount?.address)
+          console.log("🚀 ~ initializeWalletAndContract ~ userBetsData:", userBetsData)
+          
+          console.log("🚀 ~ initializeWalletAndContract ~ currentAccount:", currentAccount)
+          if (userBetsData && userBetsData.total_users > 0 && userBetsData.user_addresses.find((user_bet_address: string) => user_bet_address.toLowerCase() == currentAccount?.address?.toLowerCase())) {
+            setUserBets(userBetsData)
+            setHasAlreadyParticipated(true)
+            
+            // Store user ID if available
+            if (userBetsData.user_id) {
+              localStorage.setItem(USER_ID_KEY, userBetsData.user_id)
+              localStorage.setItem(USER_ADDRESS_KEY, currentAccount.address)
+              setUserId(userBetsData.user_id)
+            }
+            
+            // Pre-fill form with existing data
+            if (userBetsData.user_handlers) {
+              setFormData(prev => ({
+                ...prev,
+                xHandle: userBetsData.user_handlers.x_handler || "",
+                discordHandle: userBetsData.user_handlers.discord_handler || "",
+              }))
+            }
+          } else {
+            // User ID exists but no bets found, clear localStorage
+            localStorage.removeItem(USER_ID_KEY)
+            localStorage.removeItem(USER_ADDRESS_KEY)
+            setUserId(null)
+            setHasAlreadyParticipated(false)
+          }
+        } else {
+          // No stored user data, check if user has participated by address
+          userBetsData = await databaseBets.getAllUserBets(currentAccount?.address)
+          
+          if (userBetsData && userBetsData.total_users > 0 && userBetsData.user_addresses.find((user_bet_address: string) => user_bet_address.toLowerCase() == currentAccount?.address?.toLowerCase())) {
+            setUserBets(userBetsData)
+            setHasAlreadyParticipated(true)
+            
+            // Store user ID if available
+            if (userBetsData.user_id) {
+              localStorage.setItem(USER_ID_KEY, userBetsData.user_id)
+              localStorage.setItem(USER_ADDRESS_KEY, currentAccount.address)
+              setUserId(userBetsData.user_id)
+            }
+            
+            // Pre-fill form with existing data
+            if (userBetsData.user_handlers) {
+              setFormData(prev => ({
+                ...prev,
+                xHandle: userBetsData.user_handlers.x_handler || "",
+                discordHandle: userBetsData.user_handlers.discord_handler || "",
+              }))
+            }
+          } else {
+            setUserBets(null)
+            setHasAlreadyParticipated(false)
+          }
+        }
+        
         // Fetch bets from database
         const contractBets = await databaseBets.getBets()
-        const userBetsData = await databaseBets.getAllUserBets(currentAccount?.address)
         console.log("🚀 ~ initializeWalletAndContract ~ userBets:", userBetsData)
         
         // Ensure we always set an array, even if the contract returns null/undefined
         setBets(Array.isArray(contractBets) ? contractBets : [])
         
-        // Check if user has already participated
-        if (userBetsData && userBetsData.total_users > 0 && userBetsData.user_addresses.includes(currentAccount?.address)) {
-          setUserBets(userBetsData)
-          setHasAlreadyParticipated(true)
-          
-          // Pre-fill form with existing data
-          const userAddr = currentAccount?.address
-          if (userBetsData.user_handlers) {
-            setFormData(prev => ({
-              ...prev,
-              xHandle: userBetsData.user_handlers.x_handler || "",
-              discordHandle: userBetsData.user_handlers.discord_handler || "",
-            }))
-          }
-          
-          // Pre-fill votes with existing selections
-          if (userBetsData.user_bet_selections) {
-            const existingVotes: Record<string, string> = {}
-            userBetsData.user_bet_selections.forEach((betSelection: any) => {
-              // Find the bet by betId to get the internal ID
-              const bet = bets.find(b => b.betId === betSelection.bet_id)
-              if (bet) {
-                existingVotes[bet.id] = betSelection.selected_outcome
-              }
-            })
-            setFormData(prev => ({
-              ...prev,
-              votes: existingVotes
-            }))
-          }
-        } else {
-          setUserBets(null)
-          setHasAlreadyParticipated(false)
+        // Pre-fill votes with existing selections if user has participated
+        if (hasAlreadyParticipated && userBetsData?.user_bet_selections) {
+          const existingVotes: Record<string, string> = {}
+          userBetsData.user_bet_selections.forEach((betSelection: any) => {
+            // Find the bet by betId to get the internal ID
+            const bet = contractBets.find((b: any) => b.betId === betSelection.bet_id)
+            if (bet) {
+              existingVotes[bet.id] = betSelection.selected_outcome
+            }
+          })
+          setFormData(prev => ({
+            ...prev,
+            votes: existingVotes
+          }))
         }
       } catch (err) {
         console.error("Failed to initialize contract:", err)
@@ -131,6 +189,13 @@ export default function Home() {
       )
 
       if (receipt.consensus_data.leader_receipt[0].execution_result === "SUCCESS") {
+        // Store user ID and address in localStorage
+        if (receipt.user_id) {
+          localStorage.setItem(USER_ID_KEY, receipt.user_id)
+          localStorage.setItem(USER_ADDRESS_KEY, userAccount.address)
+          setUserId(receipt.user_id)
+        }
+        
         setHasAlreadyParticipated(true)
       }
     } catch (err: any) {

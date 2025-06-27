@@ -112,6 +112,7 @@ export async function GET(request: NextRequest) {
         discord_handler: user.discordHandle,
         x_handler: user.xHandle,
       },
+      user_id: user.id,
     });
   } catch (error) {
     console.error("Error fetching user bets:", error);
@@ -155,6 +156,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    let userId: string;
+
     if (existingUser) {
       // Check if user has already placed bets
       if (existingUser.userBets.length > 0) {
@@ -167,8 +170,9 @@ export async function POST(request: NextRequest) {
       }
 
       // If user exists but has no bets, allow them to place bets
+      userId = existingUser.id;
       const allBets = await validateAndGetBets();
-      await createUserBetsFromMapping(existingUser.id, betOutcomes, allBets);
+      await createUserBetsFromMapping(userId, betOutcomes, allBets);
     } else {
       // Create new user and their bets
       const newUser = await prisma.user.create({
@@ -179,8 +183,9 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      userId = newUser.id;
       const allBets = await validateAndGetBets();
-      await createUserBetsFromMapping(newUser.id, betOutcomes, allBets);
+      await createUserBetsFromMapping(userId, betOutcomes, allBets);
     }
 
     return NextResponse.json({
@@ -191,6 +196,7 @@ export async function POST(request: NextRequest) {
           },
         ],
       },
+      user_id: userId,
     });
   } catch (error) {
     console.error("Error placing bets:", error);
