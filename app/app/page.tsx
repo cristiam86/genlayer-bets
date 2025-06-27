@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { CheckCircle, Twitter, MessageCircle, Share2, Download, ExternalLink, Loader2, AlertCircle } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import DatabaseBets from "@/logic/DatabaseBets"
 import { account, createAccount } from "@/services/genlayer"
 
@@ -24,6 +25,7 @@ export default function Home() {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showErrorModal, setShowErrorModal] = useState(false)
   const [bets, setBets] = useState<any[]>([])
   const [userAccount, setUserAccount] = useState<any>(null)
   const [isInitializing, setIsInitializing] = useState(true)
@@ -201,6 +203,7 @@ export default function Home() {
     } catch (err: any) {
       console.error("Failed to submit bets:", err)
       setError(err.message || "Failed to submit your bets. Please try again.")
+      setShowErrorModal(true)
     } finally {
       setIsLoading(false)
     }
@@ -264,16 +267,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Error Display */}
-      {error && (
-        <div className="container px-4 md:px-6 mb-4">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-red-500" />
-            <p className="text-red-700">{error}</p>
-          </div>
-        </div>
-      )}
 
       {/* Participation Form */}
       <section className="py-16 md:py-24 bg-gray-50">
@@ -532,6 +525,23 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Error Modal */}
+      <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Error</DialogTitle>
+            <DialogDescription>
+              {error}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button onClick={() => setShowErrorModal(false)}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
