@@ -8,9 +8,7 @@ declare module "@/logic/GenLayerBets" {
     placeBets(
       userDiscordHandler: string,
       userXHandler: string,
-      bet0Outcome: string,
-      bet1Outcome: string,
-      bet2Outcome: string
+      betOutcomes: { [key: string]: string }
     ): Promise<any>;
     getAllUserBets(address?: string | null): Promise<any>;
     getOwner(): Promise<string>;

@@ -6,19 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { CheckCircle, Twitter, MessageCircle, Share2, Download, ExternalLink, Loader2, AlertCircle } from "lucide-react"
-import GenLayerBets from "@/logic/GenLayerBets"
+import DatabaseBets from "@/logic/DatabaseBets"
 import { account, createAccount } from "@/services/genlayer"
 
-// Contract address - you'll need to replace this with your deployed contract address
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x1234567890123456789012345678901234567890" // Replace with actual address
-const genlayerBets = new GenLayerBets(CONTRACT_ADDRESS)
+// Initialize database bets service
+const databaseBets = new DatabaseBets()
 
 export default function Home() {
-  const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     xHandle: "",
     discordHandle: "",
-    votes: {} as Record<number, string>,
+    votes: {} as Record<string, string>,
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -41,12 +39,9 @@ export default function Home() {
         
         setUserAccount(currentAccount)
         
-        // Update contract with user account
-        genlayerBets.updateAccount(currentAccount)
-        
-        // Fetch bets from contract
-        const contractBets = await genlayerBets.getBets()
-        const userBetsData = await genlayerBets.getAllUserBets(currentAccount?.address)
+        // Fetch bets from database
+        const contractBets = await databaseBets.getBets()
+        const userBetsData = await databaseBets.getAllUserBets(currentAccount?.address)
         console.log("🚀 ~ initializeWalletAndContract ~ userBets:", userBetsData)
         
         // Ensure we always set an array, even if the contract returns null/undefined
@@ -69,9 +64,13 @@ export default function Home() {
           
           // Pre-fill votes with existing selections
           if (userBetsData.user_bet_selections) {
-            const existingVotes: Record<number, string> = {}
-            userBetsData.user_bet_selections.forEach((betSelection: any, index: number) => {
-              existingVotes[index] = betSelection.selected_outcome
+            const existingVotes: Record<string, string> = {}
+            userBetsData.user_bet_selections.forEach((betSelection: any) => {
+              // Find the bet by betId to get the internal ID
+              const bet = bets.find(b => b.betId === betSelection.bet_id)
+              if (bet) {
+                existingVotes[bet.id] = betSelection.selected_outcome
+              }
             })
             setFormData(prev => ({
               ...prev,
@@ -95,7 +94,7 @@ export default function Home() {
     initializeWalletAndContract()
   }, [])
 
-  const handleVote = (marketId: number, outcome: string) => {
+  const handleVote = (marketId: string, outcome: string) => {
     setFormData((prev) => ({
       ...prev,
       votes: { ...prev.votes, [marketId]: outcome },
@@ -103,8 +102,8 @@ export default function Home() {
   }
 
   const handleSubmit = async () => {
-    if (!genlayerBets || !userAccount) {
-      setError("Please wait for wallet initialization")
+    if (!databaseBets || !userAccount) {
+      setError("Please wait for initialization")
       return
     }
 
@@ -112,18 +111,23 @@ export default function Home() {
     setError(null)
 
     try {
-      // Convert votes to the format expected by the contract
-      const bet0Outcome = formData.votes[0]?.toLowerCase() || "no"
-      const bet1Outcome = formData.votes[1]?.toLowerCase() || "no"
-      const bet2Outcome = formData.votes[2]?.toLowerCase() || "no"
+      // Create the bet ID to outcome mapping directly from user votes
+      const betOutcomes: { [key: string]: string } = {};
+      
+      // Map each bet's outcome using the betId
+      bets.forEach(bet => {
+        const userOutcome = formData.votes[bet.id];
+        if (userOutcome) {
+          betOutcomes[bet.betId] = userOutcome.toLowerCase();
+        }
+      });
 
-      // Submit bets to contract
-      const receipt = await genlayerBets.placeBets(
+      // Submit bets to database with the explicit mapping
+      const receipt = await databaseBets.placeBets(
         formData.discordHandle,
         formData.xHandle,
-        bet0Outcome,
-        bet1Outcome,
-        bet2Outcome
+        betOutcomes,
+        userAccount.address
       )
 
       if (receipt.consensus_data.leader_receipt[0].execution_result === "SUCCESS") {
@@ -325,7 +329,7 @@ export default function Home() {
                   <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
                     {bets.map((bet, index) => {
                       const userBetSelection = userBets?.user_bet_selections?.find((selection: any) => selection.bet_id === bet.id)
-                      const selectedOutcome = userBetSelection?.selected_outcome || formData.votes[index]
+                      const selectedOutcome = userBetSelection?.selected_outcome || formData.votes[bet.id]
                       
                       return (
                         <div key={bet.id} className="border rounded-lg p-4 h-full flex flex-col">
@@ -376,7 +380,7 @@ export default function Home() {
                                 variant={selectedOutcome === outcome ? "default" : "outline"}
                                 size="sm"
                                 disabled={!canProceedToVoting || hasAlreadyParticipated}
-                                onClick={() => handleVote(index, outcome)}
+                                onClick={() => handleVote(bet.id, outcome)}
                                 className={
                                   selectedOutcome === outcome
                                     ? "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
