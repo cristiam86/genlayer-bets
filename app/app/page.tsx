@@ -17,6 +17,19 @@ const databaseBets = new DatabaseBets()
 const USER_ID_KEY = "genlayer_testnet_quest_user_id"
 const USER_ADDRESS_KEY = "genlayer_testnet_quest_user_address"
 
+const getBetOutcome = (bet: any) => {
+  if (bet.betId === "genlayer_ama_375_members") {
+    return "no"
+  }
+  if (bet.betId === "new_ai_model_surpass_o3") {
+    return "yes"
+  }
+  if (bet.betId === "testnet_announcement_video_likes") {
+    return "yes"
+  }
+  return "no"
+}
+
 export default function Home() {
   const [formData, setFormData] = useState({
     xHandle: "",
@@ -332,7 +345,7 @@ export default function Home() {
                           className="pl-8"
                           value={formData.xHandle}
                           onChange={(e) => setFormData((prev) => ({ ...prev, xHandle: e.target.value }))}
-                          disabled={hasAlreadyParticipated}
+                          disabled={true}
                         />
                       </div>
                     </div>
@@ -354,7 +367,7 @@ export default function Home() {
                         placeholder="your_discord_handle"
                         value={formData.discordHandle}
                         onChange={(e) => setFormData((prev) => ({ ...prev, discordHandle: e.target.value }))}
-                        disabled={hasAlreadyParticipated}
+                        disabled={true}
                       />
                     </div>
                   </div>
@@ -363,7 +376,7 @@ export default function Home() {
             </Card>
 
             {/* Step 2: Voting */}
-            <Card className={`mb-8 ${!canProceedToVoting ? "opacity-50" : ""}`}>
+            <Card className="mb-8">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Share2 className="h-5 w-5 text-green-500" />
@@ -388,6 +401,7 @@ export default function Home() {
                     {bets.map((bet) => {
                       const userBetSelection = userBets?.user_bet_selections?.find((selection: any) => selection.bet_id === bet.betId)
                       const selectedOutcome = userBetSelection?.selected_outcome || formData.votes[bet.id]
+                      const betOutcome = getBetOutcome(bet)
                       
                       return (
                         <div key={bet.id} className="border rounded-lg p-4 h-full flex flex-col">
@@ -435,9 +449,9 @@ export default function Home() {
                             {["yes", "no"].map((outcome) => (
                               <Button
                                 key={outcome}
-                                variant={selectedOutcome === outcome ? "default" : "outline"}
+                                variant={betOutcome === outcome ? "default" : "outline"}
                                 size="sm"
-                                disabled={!canProceedToVoting || hasAlreadyParticipated}
+                                disabled={true}
                                 onClick={() => handleVote(bet.id, outcome)}
                                 className={
                                   selectedOutcome === outcome
